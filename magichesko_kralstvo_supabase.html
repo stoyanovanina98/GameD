@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магическо кралство на дробите - 5. клас</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        .math-frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.9em;
+            padding: 0 0.15em;
+        }
+        .math-frac > span:first-child {
+            border-bottom: 1.5px solid currentColor;
+            padding-bottom: 0.05em;
+        }
+        .math-frac > span:last-child {
+            padding-top: 0.05em;
+        }
+        .math-mixed {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2em;
+        }
+        .fraction-visual-card {
+            min-width: 150px; max-width: 240px; flex: 1 1 150px;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px;
+        }
+        .fraction-visual-bar { display: grid; gap: 3px; margin-top: 8px; }
+        .fraction-visual-cell { height: 20px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; }
+        .fraction-visual-cell.filled { background: #818cf8; border-color: #6366f1; }
+        .fraction-visual-whole { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 6px; padding: 3px 7px; font-size: 11px; font-weight: 700; color: #065f46; }
+        .fraction-visual-heading { width: 100%; font-size: 12px; font-weight: 800; color: #4338ca; margin-bottom: 4px; text-align: left; }
+        .fraction-visual-circle { width: 76px; height: 76px; border-radius: 50%; border: 2px solid #6366f1; margin: 10px auto 4px; box-shadow: inset 0 0 0 1px #fff; }
+        .fraction-visual-note { font-size: 11px; color: #475569; line-height: 1.45; }
+        #fractionVisuals { display: flex; }
+        #fractionVisuals.hidden { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goToHome()">
+                <span class="text-3xl">👑</span>
+                <div>
+                    <h1 class="font-bold text-lg text-indigo-900 leading-tight">Магическо кралство на дробите</h1>
+                    <p class="text-xs text-slate-500">Математика за 5. клас • МОН</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div id="userInfoHeader" class="hidden flex items-center bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
+                    <span id="headerAvatar" class="text-xl mr-2"></span>
+                    <span id="headerName" class="font-semibold text-sm text-indigo-900 mr-3"></span>
+                    <span class="bg-amber-400 text-amber-950 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm"><span id="headerScore">0</span> т.</span>
+                </div>
+                <button onclick="openAdminAuth()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl transition flex items-center">
+                    <span>🔒 Учител</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+        
+        <!-- VIEW 1: LOGIN / START -->
+        <div id="viewLogin" class="bg-white rounded-3xl p-8 card-shadow border border-slate-100 max-w-lg mx-auto w-full text-center">
+            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
+                ✨
+            </div>
+            <h2 class="text-2xl font-extrabold text-indigo-950 mb-2">Влез в кралството!</h2>
+            <p class="text-sm text-slate-500 mb-6">Въведи кода на класа и своите имена, избери аватар и покори всички 40 нива!</p>
+            <div class="mb-4 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Код на класа:</label>
+                <input type="text" id="inputClassCode" maxlength="12" placeholder="Напр. 5A-AB12" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800 font-medium uppercase">
+            </div>
+            
+            <div class="mb-5 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Име и фамилия:</label>
+                <input type="text" id="inputStudentName" placeholder="Въведи име и фамилия..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800 font-medium">
+            </div>
+
+            <div class="mb-6 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Избери си аватар:</label>
+                <div id="avatarPicker" class="grid grid-cols-6 gap-2">
+                    <!-- Avatars rendered via JS -->
+                </div>
+            </div>
+
+            <button onclick="startGameSession()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition text-base">
+                Влез в приключението 🚀
+            </button>
+        </div>
+
+        <!-- VIEW 2: TOPIC MAP -->
+        <div id="viewMap" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-extrabold text-indigo-950">Кралска карта на нивата</h2>
+                    <p class="text-xs text-slate-500">Избери тема и открий съкровищата на знанията!</p>
+                </div>
+                <button onclick="openLiveLeaderboard()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2 rounded-xl text-xs flex items-center transition">
+                    🏆 Класиране на живо
+                </button>
+            </div>
+
+            <div id="topicsContainer" class="space-y-4">
+                <!-- Topics generated via JS -->
+            </div>
+        </div>
+
+        <!-- VIEW 3: GAMEPLAY -->
+        <div id="viewGame" class="hidden max-w-2xl mx-auto w-full">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="backToMap()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition">
+                    ⬅ Към картата
+                </button>
+                <div class="text-center">
+                    <span id="gameTopicBadge" class="text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">Тема</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 font-medium">ЗАДАЧА</span>
+                    <div class="font-extrabold text-sm text-indigo-950"><span id="currentQNum">1</span> / 20</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-slate-100 mb-6">
+                <div class="text-center mb-6">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Задача №<span id="qIndexBadge">1</span></span>
+                    <h3 id="questionText" class="text-xl font-bold text-slate-800 mt-2">Тук ще се появи условието на задачата...</h3>
+                    <div id="fractionVisuals" class="hidden mt-5 flex flex-wrap justify-center gap-3 rounded-2xl bg-indigo-50/70 border border-indigo-100 p-3" aria-label="Визуално представяне на дробите"></div>
+                </div>
+
+                <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                    <!-- Options rendered via JS -->
+                </div>
+
+                <div id="feedbackBox" class="hidden p-4 rounded-2xl mb-4 text-sm font-medium">
+                    <!-- Feedback message -->
+                </div>
+
+                <div class="flex justify-end">
+                    <button id="nextQuestionBtn" onclick="nextQuestion()" class="hidden px-6 py-3 bg-indigo-900 hover:bg-indigo-950 text-white font-bold rounded-xl text-sm transition shadow-md">
+                        Следваща задача ➔
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: LEVEL COMPLETE -->
+        <div id="viewComplete" class="hidden bg-white rounded-3xl p-8 card-shadow border border-slate-100 max-w-md mx-auto w-full text-center">
+            <div class="text-6xl mb-4">👑</div>
+            <h2 class="text-2xl font-extrabold text-indigo-950 mb-1">Браво, ти успя!</h2>
+            <p id="completeSubtitle" class="text-sm text-slate-500 mb-6">Успешно премина нивото!</p>
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 mb-6">
+                <div class="text-xs text-indigo-500 font-bold uppercase">Спечелени точки</div>
+                <div id="completeScoreEarned" class="text-3xl font-extrabold text-indigo-900">+200 т.</div>
+                <div id="completeTitleBadge" class="mt-2 inline-block bg-amber-400 text-amber-950 font-bold text-xs px-3 py-1 rounded-full">Титла: Магьосник</div>
+            </div>
+            <button onclick="backToMap()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg transition text-sm">
+                Продължи напред ⭐
+            </button>
+        </div>
+
+        <!-- VIEW 5: LIVE LEADERBOARD -->
+        <div id="viewLeaderboard" class="hidden bg-white rounded-3xl p-6 card-shadow border border-slate-100 max-w-2xl mx-auto w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-extrabold text-indigo-950">🏆 Класиране на кралството в реално време</h2>
+                <button onclick="backToMap()" class="text-xs bg-slate-200 hover:bg-slate-300 font-bold px-3 py-1.5 rounded-xl">Затвори</button>
+            </div>
+            <div id="leaderboardList" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                <!-- Leaderboard rows -->
+            </div>
+        </div>
+
+        <!-- TEACHER AUTH MODAL -->
+        <div id="modalAdminAuth" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 max-w-sm w-full card-shadow">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">Учителски панел</h3>
+                <p class="text-xs text-slate-500 mb-3">Вход с учителския акаунт, създаден в Supabase.</p>
+                <input type="email" id="adminEmailInput" autocomplete="username" placeholder="Учителски имейл" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="adminPasswordInput" autocomplete="current-password" placeholder="Парола..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="flex space-x-2">
+                    <button onclick="closeAdminAuth()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Отказ</button>
+                    <button onclick="verifyAdminPassword()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs">Вход</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 6: TEACHER DASHBOARD -->
+        <div id="viewAdminDashboard" class="hidden bg-white rounded-3xl p-6 card-shadow border border-slate-100 max-w-4xl mx-auto w-full">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-indigo-950">👑 Учителски панел (Администратор)</h2>
+                    <p class="text-xs text-slate-500">Справки за учениците и подменю с тестове за работа в час.</p>
+                </div>
+                <button onclick="goToHome()" class="text-xs bg-slate-200 hover:bg-slate-300 font-bold px-3 py-1.5 rounded-xl">Изход</button>
+            </div>
+
+            <div class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+                <h3 class="font-extrabold text-emerald-950 mb-2">🏫 Управление на класа</h3>
+                <div class="flex flex-col sm:flex-row gap-2 mb-3">
+                    <input id="newClassName" type="text" maxlength="60" placeholder="Име на класа, напр. 5.А" class="flex-1 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm">
+                    <button onclick="createOnlineClass()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs">+ Създай клас</button>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+                    <select id="teacherClassSelect" onchange="onTeacherClassChange()" class="flex-1 px-3 py-2 bg-white border border-emerald-200 rounded-xl text-sm"><option value="">Зареждане на класовете...</option></select>
+                    <div class="text-xs text-emerald-900 bg-white border border-emerald-200 rounded-xl px-3 py-2">Код за учениците: <strong id="teacherJoinCode">—</strong></div>
+                    <button onclick="copyTeacherJoinCode()" class="px-3 py-2 bg-white border border-emerald-200 text-emerald-800 font-bold rounded-xl text-xs">Копирай кода</button>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mt-3">
+                    <p class="text-[11px] text-emerald-900">Изпрати на учениците линка към играта и кода на класа.</p>
+                    <button onclick="resetWholeClass()" class="px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-xl text-xs">Нулирай резултатите на класа</button>
+                </div>
+            </div>
+
+            <div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="font-extrabold text-indigo-950">📊 Обобщение за класа</h3>
+                        <p class="text-xs text-slate-600">Данните се зареждат от общата онлайн база данни на избрания клас.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="refreshTeacherData()" class="px-3 py-2 bg-white hover:bg-indigo-100 border border-indigo-200 text-indigo-800 font-bold rounded-xl text-xs">↻ Обнови</button>
+                        <button onclick="exportTeacherReport()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs">⬇ Изтегли отчет (CSV)</button>
+                    </div>
+                </div>
+                <div id="adminOverviewCards" class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <!-- Summary cards populated via JS -->
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-bold text-xs text-indigo-950 mb-2">Успеваемост по теми</h4>
+                    <div id="adminTopicStats" class="space-y-2">
+                        <!-- Topic statistics populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-100 pb-2">
+                <button onclick="switchAdminTab('logs')" id="tabBtnLogs" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl text-xs transition">Статистика на учениците</button>
+                <button onclick="switchAdminTab('tests')" id="tabBtnTests" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">Тестове за час (Тест банк)</button>
+                <button onclick="switchAdminTab('ranking')" id="tabBtnRanking" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">Класиране</button>
+            </div>
+
+            <div id="adminTabLogs">
+                <h3 class="font-bold text-sm text-slate-700 mb-3">Решени задачи и грешки по ученици</h3>
+                <div id="adminStudentLogsList" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    <!-- Logs populated via JS -->
+                </div>
+            </div>
+
+            <div id="adminTabRanking" class="hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-700">Класиране на учениците</h3>
+                        <p class="text-xs text-slate-500">Резултатите се изчисляват от записаните отговори в онлайн базата.</p>
+                    </div>
+                    <button onclick="resetWholeClass()" class="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-xl text-xs">Нулирай резултатите</button>
+                </div>
+                <div id="adminRankingList" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div id="adminTabTests" class="hidden">
+                <h3 class="font-bold text-sm text-slate-700 mb-2">Интерактивни куизове за работа в час</h3>
+                <p class="text-xs text-slate-500 mb-4">Избери отговор за всеки въпрос. След отговора ще видиш дали е верен и кратко обяснение.</p>
+                <div id="adminTestBankList" class="space-y-4 max-h-96 overflow-y-auto pr-1">
+                    <!-- Test bank populated via JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-400">
+        Магическо кралство на дробите • Разработено за 5. клас
+    </footer>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(type) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(554.37, now + 0.1);
+                osc.frequency.setValueAtTime(659.25, now + 0.2);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.setValueAtTime(120, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        }
+
+        const avatars = ['🦊', '🐼', '🦁', '🐯', '🦄', '🐲', '🦉', '🐱', '🐶', '🐰', '🐸', '🐵'];
+        let selectedAvatar = '🦊';
+        let studentName = '';
+        let totalScore = 0;
+        let levelStartScore = 0;
+        let currentTopicId = null;
+        let currentLevel = 1;
+        let currentQuestionIdx = 0;
+        let currentProblems = [];
+        let sessionLogs = [];
+
+        const topics = [
+            { id: 1, name: "Обикновени дроби", icon: "🍕" },
+            { id: 2, name: "Правилни и неправилни дроби", icon: "📐" },
+            { id: 3, name: "Разширяване на дроби", icon: "🔍" },
+            { id: 4, name: "Съкращаване на дроби", icon: "✂️" },
+            { id: 5, name: "Разширяване и съкращаване на дроби", icon: "⚖️" },
+            { id: 6, name: "Привеждане на дроби под най-малък общ знаменател (НОЗ)", icon: "🎯" },
+            { id: 7, name: "Сравняване на дроби с еднакъв числител", icon: "⚖️" },
+            { id: 8, name: "Сравняване на дроби с еднакъв знаменател", icon: "📊" },
+            { id: 9, name: "Сравняване на дроби с различни числители и знаменатели", icon: "📈" },
+            { id: 10, name: "Събиране на дроби с еднакви знаменатели", icon: "➕" },
+            { id: 11, name: "Събиране на дроби с различни знаменатели", icon: "➕" },
+            { id: 12, name: "Изваждане на дроби с еднакви знаменатели", icon: "➖" },
+            { id: 13, name: "Изваждане на дроби с различни знаменатели", icon: "➖" },
+            { id: 14, name: "Събиране и изваждане на дроби", icon: "🧮" },
+            { id: 15, name: "Събиране и изваждане на дроби с намиране на неизвестно число", icon: "❓" },
+            { id: 16, name: "Смесени числа", icon: "🍫" },
+            { id: 17, name: "Преобразуване на неправилни дроби в смесени числа и обратно", icon: "🔄" },
+            { id: 18, name: "Събиране на смесени числа", icon: "➕" },
+            { id: 19, name: "Изваждане на смесени числа", icon: "➖" },
+            { id: 20, name: "Събиране и изваждане на дроби и смесени числа", icon: "👑" }
+        ];
+
+        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+        function simplify(num, den) {
+            let g = gcd(Math.abs(num), Math.abs(den));
+            return [num / g, den / g];
+        }
+
+        function renderFraction(num, den) {
+            let s = simplify(num, den);
+            return `<span class="math-frac"><span>${s[0]}</span><span>${s[1]}</span></span>`;
+        }
+
+        function renderUnsimplifiedFraction(num, den) {
+            return `<span class="math-frac"><span>${num}</span><span>${den}</span></span>`;
+        }
+
+        function renderMixed(whole, num, den) {
+            let s = simplify(num, den);
+            return `<span class="math-mixed"><span class="font-bold">${whole}</span><span class="math-frac"><span>${s[0]}</span><span>${s[1]}</span></span></span>`;
+        }
+
+        window.onload = function() {
+            renderAvatarPicker();
+        };
+
+        function renderAvatarPicker() {
+            const container = document.getElementById('avatarPicker');
+            container.innerHTML = avatars.map(av => `
+                <button type="button" onclick="selectAvatar('${av}')" class="text-2xl p-2 rounded-xl border-2 transition ${selectedAvatar === av ? 'border-indigo-600 bg-indigo-50 scale-105' : 'border-slate-100 bg-slate-50 hover:bg-slate-100'}">
+                    ${av}
+                </button>
+            `).join('');
+        }
+
+        function selectAvatar(av) {
+            selectedAvatar = av;
+            renderAvatarPicker();
+            playTone('click');
+        }
+
+        function startGameSession() {
+            const nameInput = document.getElementById('inputStudentName').value.trim();
+            if (!nameInput) {
+                alert('Моля, въведи своето име преди да започнеш!');
+                return;
+            }
+            studentName = nameInput;
+            playTone('click');
+
+            document.getElementById('headerAvatar').innerText = selectedAvatar;
+            document.getElementById('headerName').innerText = studentName;
+            document.getElementById('userInfoHeader').classList.remove('hidden');
+
+            document.getElementById('viewLogin').classList.add('hidden');
+            document.getElementById('viewMap').classList.remove('hidden');
+            renderTopicsMap();
+        }
+
+        function goToHome() {
+            playTone('click');
+            document.getElementById('viewLogin').classList.remove('hidden');
+            document.getElementById('viewMap').classList.add('hidden');
+            document.getElementById('viewGame').classList.add('hidden');
+            document.getElementById('viewComplete').classList.add('hidden');
+            document.getElementById('viewLeaderboard').classList.add('hidden');
+            document.getElementById('viewAdminDashboard').classList.add('hidden');
+            document.getElementById('userInfoHeader').classList.add('hidden');
+        }
+
+        function renderTopicsMap() {
+            const container = document.getElementById('topicsContainer');
+            container.innerHTML = topics.map((t) => `
+                <div class="bg-white rounded-2xl p-4 card-shadow border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl">
+                            ${t.icon}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase">Тема ${t.id}</span>
+                            <h3 class="font-extrabold text-sm md:text-base text-indigo-950">${t.name}</h3>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="startLevel(${t.id}, 1)" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-bold rounded-xl text-xs transition border border-indigo-100">
+                            Ниво 1 ⭐
+                        </button>
+                        <button onclick="startLevel(${t.id}, 2)" class="px-3.5 py-2 bg-indigo-900 hover:bg-indigo-950 text-white font-bold rounded-xl text-xs transition shadow-sm">
+                            Ниво 2 🚀
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startLevel(topicId, level) {
+            currentTopicId = topicId;
+            currentLevel = level;
+            currentQuestionIdx = 0;
+            currentProblems = generateTopicProblems(topicId, level);
+            levelStartScore = totalScore;
+            playTone('click');
+
+            document.getElementById('viewMap').classList.add('hidden');
+            document.getElementById('viewGame').classList.remove('hidden');
+            document.getElementById('gameTopicBadge').innerText = `Тема ${topicId} • Ниво ${level}`;
+
+            loadQuestion();
+        }
+
+        function generateTopicProblems(topicId, level) {
+            const problems = [];
+            for (let i = 1; i <= 20; i++) problems.push(generateSingleProblem(topicId, level, i));
+            return problems;
+        }
+
+
+        // Ниво 1: въвеждащи задачи с малки числа и ясна последователност.
+        // Целта е упражняване на основното умение, преди комбинираните задачи от Ниво 2.
+        function generateLevelOneProblem(topicId, i) {
+            const q = i - 1;
+            const F = (n,d) => renderFraction(n,d);
+            const U = (n,d) => renderUnsimplifiedFraction(n,d);
+            const M = (w,n,d) => renderMixed(w,n,d);
+            let qText = "", correctAns = "", wrong = [], explanation = "";
+            switch (topicId) {
+                case 1: {
+                    const d = 3 + q, n = 1 + ((q * 2 + 1) % (d - 1));
+                    qText = `Лента е разделена на ${d} равни части, от които ${n} са оцветени. Коя дроб показва оцветената част?`;
+                    correctAns = U(n,d);
+                    wrong = [U(d,n), U(Math.min(d-1,n+1),d), U(n, d+1)];
+                    explanation = `Общият брой равни части е ${d}, а оцветените са ${n}. Затова записваме дробта ${U(n,d)}.`;
+                    break;
+                }
+                case 2: {
+                    const d = 3 + q, n = q % 2 === 0 ? 1 + (q % (d-1)) : d + 1 + (q % 3);
+                    qText = `Дробта ${U(n,d)} правилна или неправилна е?`;
+                    correctAns = n < d ? "Правилна дроб" : "Неправилна дроб";
+                    wrong = [n < d ? "Неправилна дроб" : "Правилна дроб", "Единична дроб", "Смесено число"];
+                    explanation = n < d ? `Числителят ${n} е по-малък от знаменателя ${d}, затова дробта е правилна.` : `Числителят ${n} е по-голям от знаменателя ${d}, затова дробта е неправилна.`;
+                    break;
+                }
+                case 3: {
+                    const d = 3 + q, n = 1 + (q % (d-1)), k = 2;
+                    qText = `Разширете дробта ${U(n,d)} с 2.`;
+                    correctAns = U(n*2,d*2);
+                    wrong = [U(n*2,d), U(n,d*2), U(n+2,d+2)];
+                    explanation = `Умножаваме числителя и знаменателя по 2: ${n}·2=${n*2}, ${d}·2=${d*2}.`;
+                    break;
+                }
+                case 4: {
+                    const a = 2 + q, k = 2, n = a*k, d = (a+1)*k;
+                    qText = `Съкратете дробта ${U(n,d)} чрез деление на 2.`;
+                    correctAns = U(a,a+1);
+                    wrong = [U(a+1,a), U(a,d), U(n,d)];
+                    explanation = `Делим числителя и знаменателя на 2: ${n}:2=${a}, ${d}:2=${a+1}.`;
+                    break;
+                }
+                case 5: {
+                    const a = 2 + q, d = a + 3;
+                    if (q % 2 === 0) {
+                        qText = `Разширете ${U(a,d)} с 2.`;
+                        correctAns = U(a*2,d*2);
+                        wrong = [U(a*2,d), U(a,d*2), U(a+2,d+2)];
+                        explanation = `Умножаваме и двете числа по 2.`;
+                    } else {
+                        qText = `Съкратете ${U(a*2,d*2)} чрез деление на 2.`;
+                        correctAns = U(a,d);
+                        wrong = [U(a+1,d), U(a,d+1), U(a*2,d*2)];
+                        explanation = `Делим числителя и знаменателя на 2.`;
+                    }
+                    break;
+                }
+                case 6: {
+                    const a = 2 + q, b = a + 1, l = a*b;
+                    qText = `Приведете ${U(1,a)} и ${U(1,b)} под общ знаменател. Коя двойка е вярна?`;
+                    correctAns = `${U(b,l)} и ${U(a,l)}`;
+                    wrong = [`${U(1,a)} и ${U(1,b)}`, `${U(b+1,l)} и ${U(a,l)}`, `${U(b,l)} и ${U(a+1,l)}`];
+                    explanation = `Общ знаменател е ${l}. Разширяваме първата дроб по ${b}, а втората по ${a}.`;
+                    break;
+                }
+                case 7: {
+                    const n = 1 + (q % 5), a = 3 + q, b = a + 1;
+                    qText = `Поставете правилния знак: ${U(n,a)} □ ${U(n,b)}.`;
+                    correctAns = ">";
+                    wrong = ["<", "=", "Не може да се определи"];
+                    explanation = `При еднакви числители дробта с по-малък знаменател е по-голяма.`;
+                    break;
+                }
+                case 8: {
+                    const d = 4 + q, a = 1 + (q % 3), b = a + 1;
+                    qText = `Поставете правилния знак: ${U(a,d)} □ ${U(b,d)}.`;
+                    correctAns = "<";
+                    wrong = [">", "=", "Не може да се определи"];
+                    explanation = `При еднакви знаменатели сравняваме числителите. ${a} е по-малко от ${b}.`;
+                    break;
+                }
+                case 9: {
+                    const a = 1 + (q % 4), b = 2 + q, c = 1 + (q % 3), d = b + 2;
+                    const left = a*d, right = c*b, sign = left > right ? ">" : left < right ? "<" : "=";
+                    qText = `Сравнете дробите: ${U(a,b)} □ ${U(c,d)}.`;
+                    correctAns = sign;
+                    wrong = [sign === ">" ? "<" : ">", sign === "=" ? "<" : "=", "Не може да се определи"];
+                    explanation = `Сравняваме кръстосаните произведения: ${a}·${d}=${left}, ${c}·${b}=${right}.`;
+                    break;
+                }
+                case 10: {
+                    const d = 5 + q, a = 1 + (q % 3), b = 1 + ((q+1) % 3);
+                    qText = `Пресметнете: ${U(a,d)} + ${U(b,d)}.`;
+                    correctAns = F(a+b,d);
+                    wrong = [F(a+b+1,d), F(a+b,d+1), F(Math.max(1,a+b-1),d)];
+                    explanation = `Знаменателят остава същият, а събираме числителите: ${a}+${b}=${a+b}.`;
+                    break;
+                }
+                case 11: {
+                    const a = 2 + q, b = a + 1, n = 1, m = 1;
+                    const total = b + a;
+                    qText = `Пресметнете: ${U(n,a)} + ${U(m,b)}.`;
+                    correctAns = F(b+a,a*b);
+                    wrong = [F(2,a+b), F(b+a+1,a*b), F(b+a,a*b+1)];
+                    explanation = `Общ знаменател е ${a*b}: ${U(1,a)}=${U(b,a*b)} и ${U(1,b)}=${U(a,a*b)}.`;
+                    break;
+                }
+                case 12: {
+                    const d = 5 + q, a = 3 + (q % 3), b = 1 + (q % 2);
+                    qText = `Пресметнете: ${U(a,d)} − ${U(b,d)}.`;
+                    correctAns = F(a-b,d);
+                    wrong = [F(a-b+1,d), F(a-b,d+1), F(a-b+2,d)];
+                    explanation = `Знаменателят остава ${d}, а изваждаме числителите: ${a}−${b}=${a-b}.`;
+                    break;
+                }
+                case 13: {
+                    const a = 2 + q, b = a + 1;
+                    qText = `Пресметнете: ${U(1,a)} − ${U(1,a*b)}.`;
+                    correctAns = F(b-1,a*b);
+                    wrong = [F(b,a*b), F(b-1,a), F(b-2,a*b)];
+                    explanation = `Преобразуваме ${U(1,a)} в ${U(b,a*b)}, след което изваждаме: ${b}−1=${b-1}.`;
+                    break;
+                }
+                case 14: {
+                    const d1 = 4 + (q % 5), d2 = 5 + ((q * 2) % 6);
+                    const a = 1 + (q % 3), b = 1 + ((q + 1) % 3);
+                    const same = q % 2 === 0;
+                    const den2 = same ? d1 : d2;
+                    const sign = q % 4 < 2 ? "+" : "−";
+                    if (sign === "+") {
+                        const n = same ? a + b : a * den2 + b * d1;
+                        const den = same ? d1 : d1 * den2;
+                        qText = same
+                            ? `Пресметнете: ${U(a,d1)} + ${U(b,d1)}.`
+                            : `Пресметнете: ${U(a,d1)} + ${U(b,den2)}.`;
+                        correctAns = F(n,den);
+                        wrong = [F(n+1,den), F(n,den+1), F(Math.max(1,n-1),den)];
+                        explanation = same
+                            ? `Знаменателите са еднакви. Събираме числителите: ${a}+${b}=${a+b}.`
+                            : `Намираме общ знаменател ${den}, разширяваме двете дроби и събираме числителите.`;
+                    } else {
+                        const top = same ? Math.max(a,b)+2 : a*den2;
+                        const bottom = same ? Math.min(a,b) : b*d1;
+                        const den = same ? d1 : d1*den2;
+                        qText = same
+                            ? `Пресметнете: ${U(top,d1)} − ${U(bottom,d1)}.`
+                            : `Пресметнете: ${U(a,d1)} − ${U(b,den2)}.`;
+                        const numerator = same ? top-bottom : Math.max(1,(d1-1)*den2-d1);
+                        correctAns = F(numerator,den);
+                        wrong = [F(numerator+1,den), F(numerator,den+1), F(Math.max(1,numerator-1),den)];
+                        explanation = same
+                            ? `Знаменателите са еднакви. Изваждаме числителите: ${top}−${bottom}=${numerator}.`
+                            : `Привеждаме дробите под общ знаменател ${den}, след което изваждаме числителите.`;
+                    }
+                    break;
+                }
+                case 15: {
+                    const d = 4 + q, a = 1 + (q % 3), b = 1 + ((q+1) % 3);
+                    if (q % 2 === 0) {
+                        qText = `Намерете x: x + ${U(a,d)} = ${U(a+b,d)}.`;
+                        correctAns = U(b,d);
+                        wrong = [U(a,d), U(a+b,d), U(b+1,d)];
+                        explanation = `x = ${U(a+b,d)} − ${U(a,d)} = ${U(b,d)}.`;
+                    } else {
+                        qText = `Намерете x: x − ${U(a,d)} = ${U(b,d)}.`;
+                        correctAns = U(a+b,d);
+                        wrong = [U(b,d), U(a,d), U(a+b+1,d)];
+                        explanation = `x = ${U(b,d)} + ${U(a,d)} = ${U(a+b,d)}.`;
+                    }
+                    break;
+                }
+                case 16: {
+                    const w = 1 + (q % 5), n = 1 + (q % 4), d = n + 2 + (q % 3);
+                    const whole = w*d+n;
+                    switch (q % 4) {
+                        case 0:
+                            qText = `Коя част от числото ${M(w,n,d)} показва колко цели единици има?`;
+                            correctAns = `${w}`;
+                            wrong = [`${n}`, `${d}`, `${w+1}`];
+                            explanation = `Цялата част на смесеното число показва броя на пълните единици: ${w}.`;
+                            break;
+                        case 1:
+                            qText = `Между кои две последователни цели числа се намира ${M(w,n,d)}?`;
+                            correctAns = `Между ${w} и ${w+1}`;
+                            wrong = [`Между ${w-1} и ${w}`, `Между ${w+1} и ${w+2}`, `Между 0 и 1`];
+                            explanation = `Дробната част е по-малка от едно цяло, затова числото е по-голямо от ${w}, но по-малко от ${w+1}.`;
+                            break;
+                        case 2:
+                            qText = `Кое смесено число описва ${w} цели пици и още ${n} от ${d} равни парчета?`;
+                            correctAns = M(w,n,d);
+                            wrong = [M(w+1,n,d), M(w,d,n), M(n,w,d)];
+                            explanation = `Имаме ${w} цели пици и ${n}/${d} от следващата: ${M(w,n,d)}.`;
+                            break;
+                        default:
+                            qText = `Преобразувайте ${M(w,n,d)} в неправилна дроб.`;
+                            correctAns = U(whole,d);
+                            wrong = [U(whole+1,d), U(whole,d+1), U(w+n,d)];
+                            explanation = `Умножаваме цялата част по знаменателя и прибавяме числителя: ${w}·${d}+${n}=${whole}.`;
+                    }
+                    break;
+                }
+                case 17: {
+                    const d = 3 + q, n = 1 + (q % (d-1)), w = 1 + (q % 4);
+                    if (q % 2 === 0) {
+                        qText = `Преобразувайте смесеното число ${M(w,n,d)} в неправилна дроб.`;
+                        correctAns = U(w*d+n,d);
+                        wrong = [U(w*d+n+1,d), U(w*d+n,d+1), U(w+n,d)];
+                        explanation = `Умножаваме цялата част по знаменателя и прибавяме числителя: ${w}·${d}+${n}=${w*d+n}.`;
+                    } else {
+                        const whole = Math.floor((w*d+n)/d), rem = (w*d+n)%d;
+                        qText = `Колко цели единици има в неправилната дроб ${U(w*d+n,d)}?`;
+                        correctAns = `${whole}`;
+                        wrong = [`${whole+1}`, `${rem}`, `${Math.max(0,whole-1)}`];
+                        explanation = `${w*d+n} : ${d} = ${whole} с остатък ${rem}.`;
+                    }
+                    break;
+                }
+                case 18: {
+                    const d = 4 + q, a = 1 + (q % 2), b = 1 + ((q+1) % 2), w = 1 + (q % 3);
+                    qText = `Съберете: ${M(w,a,d)} + ${U(b,d)}.`;
+                    correctAns = M(w,a+b,d);
+                    wrong = [M(w+1,a+b,d), M(w,a+b+1,d), M(w,a+b,d+1)];
+                    explanation = `Събираме целите части и дробните части: ${a}+${b}=${a+b}.`;
+                    break;
+                }
+                case 19: {
+                    const d = 5 + q, w = 3 + (q % 3), a = 1 + (q % 2), b = 1;
+                    qText = `Извадете: ${M(w,a+1,d)} − ${M(1,b,d)}.`;
+                    correctAns = M(w-1,a,d);
+                    wrong = [M(w,a,d), M(w-2,a,d), M(w-1,a+1,d)];
+                    explanation = `Изваждаме целите части и дробните части: (${w}−1) + (${a+1}−1)/${d}.`;
+                    break;
+                }
+                case 20: {
+                    const d = 5 + q, a = 1 + (q % 2), b = 1 + ((q+1) % 2), w = 2 + (q % 3);
+                    if (q % 2 === 0) {
+                        qText = `Пресметнете: ${M(w,a,d)} + ${U(b,d)}.`;
+                        correctAns = M(w,a+b,d);
+                        wrong = [M(w+1,a+b,d), M(w,a+b+1,d), M(w,a+b,d+1)];
+                        explanation = `Събираме дробните части, като запазваме цялата част.`;
+                    } else {
+                        qText = `Пресметнете: ${M(w,a+b,d)} − ${U(b,d)}.`;
+                        correctAns = M(w,a,d);
+                        wrong = [M(w+1,a,d), M(w,a+1,d), M(w,a,d+1)];
+                        explanation = `Изваждаме дробните части: ${a+b}−${b}=${a}.`;
+                    }
+                    break;
+                }
+                default:
+                    qText = `Пресметнете: ${U(1,2)} + ${U(1,2)}.`;
+                    correctAns = "1"; wrong = ["0", U(1,2), "2"]; explanation = "Сборът е едно цяло.";
+            }
+            const options = [correctAns, ...wrong].filter((v, idx, arr) => arr.indexOf(v) === idx);
+            const fallbackOptions = ["Няма верен отговор", "Не може да се определи"];
+            while (options.length < 4) {
+                const fallback = fallbackOptions.find(value => !options.includes(value));
+                options.push(fallback || `Вариант ${options.length + 1}`);
+            }
+            const shuffled = options.slice().sort(() => Math.random() - 0.5);
+            return { qText, options: shuffled, correctAns, explanation };
+        }
+
+        function generateSingleProblem(topicId, level, i) {
+            if (level === 1) return generateLevelOneProblem(topicId, i);
+            // Всеки индекс задава различни числа; второто ниво сменя числовия диапазон
+            // и при избрани теми добавя още една стъпка на разсъждение.
+            const L = level === 2 ? 1 : 0;
+            const z = i + L * 23;
+            let qText = "", correctAns = "", wrong = [], explanation = "";
+            const F = (n,d) => renderFraction(n,d);
+            const U = (n,d) => renderUnsimplifiedFraction(n,d);
+            const M = (w,n,d) => renderMixed(w,n,d);
+            const mk = (a,b,c) => [a,b,c];
+
+            switch (topicId) {
+                case 1: {
+                    const d = 5 + z, n = 1 + ((z * 3) % (d - 1));
+                    qText = `Пица е разделена на ${d} равни парчета. ${n} парчета са изядени. Коя дроб показва изядената част?`;
+                    correctAns = U(n,d);
+                    wrong = [U(d,n), U(Math.min(d-1,n+1),d), U(n,d+1)];
+                    explanation = `Изядени са ${n} от общо ${d} равни парчета, затова търсената дроб е ${U(n,d)}.`;
+                    break;
+                }
+                case 2: {
+                    const d = 7 + z, n = (i % 2 === 0) ? (2 + ((z * 2) % (d - 2))) : (d + 1 + (z % 7));
+                    const proper = n < d;
+                    qText = `Определете вида на дробта ${U(n,d)}.`;
+                    correctAns = proper ? "Правилна дроб" : "Неправилна дроб";
+                    wrong = proper ? ["Неправилна дроб","Единична дроб","Смесено число"] : ["Правилна дроб","Единична дроб","Смесено число"];
+                    explanation = proper ? `Числителят ${n} е по-малък от знаменателя ${d}.` : `Числителят ${n} е по-голям или равен на знаменателя ${d}.`;
+                    break;
+                }
+                case 3: {
+                    const n = 1 + z, d = n + 2 + (z % 7), k = 2 + (z % 5);
+                    qText = `Разширете дробта ${U(n,d)} с ${k}.`;
+                    correctAns = U(n*k,d*k);
+                    wrong = [U(n*k,d),U(n,d*k),U(n+k,d+k)];
+                    explanation = `Умножаваме и числителя, и знаменателя по ${k}: ${n}·${k}=${n*k}, ${d}·${k}=${d*k}.`;
+                    break;
+                }
+                case 4: {
+                    const base = 2 + (z % 8), k = 2 + (z % 6), n = base*k, d = (base+2+(z%5))*k;
+                    const g = gcd(n,d);
+                    qText = `Съкратете дробта ${U(n,d)} до несъкратим вид.`;
+                    correctAns = F(n,d);
+                    wrong = [F(n/g+1,d/g),F(n/g,d/g+1),F(n-k,d)];
+                    explanation = `Най-големият общ делител е ${g}; делим числителя и знаменателя на ${g}.`;
+                    break;
+                }
+                case 5: {
+                    const n = 2 + (z % 9), d = n + 3 + (z % 6), k = 2 + (z % 5);
+                    if (i % 2) {
+                        qText = `Разширете ${U(n,d)} с ${k}.`;
+                        correctAns = U(n*k,d*k);
+                        wrong = [U(n*k,d),U(n,d*k),U(n+k,d+k)];
+                        explanation = `Умножаваме двата члена на дробта по ${k}.`;
+                    } else {
+                        const nn=n*k, dd=d*k;
+                        qText = `Съкратете ${U(nn,dd)} чрез общия делител ${k}.`;
+                        correctAns = F(nn,dd);
+                        wrong = [F(nn/k+1,dd/k),F(nn/k,dd/k+1),F(nn,dd)];
+                        explanation = `Делим числителя и знаменателя на ${k}, след което записваме резултата в съкратен вид.`;
+                    }
+                    break;
+                }
+                case 6: {
+                    const a = 4 + z, b = 5 + ((z*3)%17), g = gcd(a,b), l = a*b/g;
+                    qText = `Приведете дробите ${U(1,a)} и ${U(1,b)} под най-малък общ знаменател. Коя двойка е вярна?`;
+                    correctAns = `${U(l/a,l)} и ${U(l/b,l)} (НОЗ ${l})`;
+                    wrong = [`${U(1,a)} и ${U(1,b)} (НОЗ ${a*b})`,`${U(l/a+1,l)} и ${U(l/b,l)} (НОЗ ${l})`,`${U(l/a,l)} и ${U(l/b+1,l)} (НОЗ ${l})`];
+                    explanation = `НОЗ(${a}, ${b}) = ${l}; умножаваме първата дроб по ${l/a}/${l/a}, а втората по ${l/b}/${l/b}.`;
+                    break;
+                }
+                case 7: {
+                    const n = 2+z, a=n+2+(z%5), b=a+1+(z%4);
+                    qText = `Сравнете дробите ${U(n,a)} и ${U(n,b)}.`;
+                    correctAns = `${U(n,a)} > ${U(n,b)}`;
+                    wrong = [`${U(n,a)} < ${U(n,b)}`,`${U(n,a)} = ${U(n,b)}`,"Не може да се определи"];
+                    explanation = `При равни числители по-малката дроб е тази с по-голям знаменател.`;
+                    break;
+                }
+                case 8: {
+                    const d=9+z, a=2+(z%5), b=a+1+(z%4);
+                    qText = `Сравнете дробите ${U(a,d)} и ${U(b,d)}.`;
+                    correctAns = `${U(a,d)} < ${U(b,d)}`;
+                    wrong = [`${U(a,d)} > ${U(b,d)}`,`${U(a,d)} = ${U(b,d)}`,"Не може да се определи"];
+                    explanation = `При равни знаменатели сравняваме числителите: ${a}<${b}.`;
+                    break;
+                }
+                case 9: {
+                    const a=2+(z%11), b=5+(z%9), c=3+((z*2)%10), d=7+((z*3)%11);
+                    const x=a*d, y=c*b, sign=x>y?">":(x<y?"<":"=");
+                    qText = `Сравнете дробите ${U(a,b)} и ${U(c,d)}.`;
+                    correctAns = `${U(a,b)} ${sign} ${U(c,d)}`;
+                    // При равни дроби предлагаме и двата неправилни знака като отделни дистрактори.
+                    wrong = sign === "="
+                        ? [`${U(a,b)} > ${U(c,d)}`, `${U(a,b)} < ${U(c,d)}`, "Не може да се определи"]
+                        : [`${U(a,b)} ${sign === ">" ? "<" : ">"} ${U(c,d)}`, `${U(a,b)} = ${U(c,d)}`, "Не може да се определи"];
+                    explanation = `Сравняваме кръстосаните произведения: ${a}·${d}=${x}, ${c}·${b}=${y}.`;
+                    if (sign === "=") explanation += ` Кръстосаните произведения са равни, затова дробите са равни.`;
+                    break;
+                }
+                case 10: {
+                    const d=11+z, a=1+(z%7), b=1+((z*3)%7), sum=a+b;
+                    qText = `Пресметнете: ${U(a,d)} + ${U(b,d)} = ?`;
+                    correctAns=F(sum,d);
+                    wrong=[F(sum+1,d),F(sum,d+1),F(Math.max(1,sum-1),d)];
+                    explanation=`Събираме числителите и запазваме знаменателя: ${a}+${b}=${sum}.`;
+                    break;
+                }
+                case 11: {
+                    const a=2+(z%8), b=9+((z*3)%13), g=gcd(a,b), l=a*b/g;
+                    const n1=1+(z%Math.max(2,a-1)), n2=1+((z*2)%Math.max(2,b-1));
+                    const total=n1*(l/a)+n2*(l/b);
+                    qText=`Пресметнете: ${U(n1,a)} + ${U(n2,b)} = ?`;
+                    correctAns=F(total,l);
+                    wrong=[F(n1+n2,a+b),F(total+1,l),F(total,l+1)];
+                    explanation=`НОЗ(${a}, ${b})=${l}; разширяваме двете дроби и събираме числителите.`;
+                    break;
+                }
+                case 12: {
+                    const d=12+z, b=1+(z%5), a=b+2+(z%8), diff=a-b;
+                    qText=`Пресметнете: ${U(a,d)} − ${U(b,d)} = ?`;
+                    correctAns=F(diff,d);
+                    wrong=[F(diff+1,d),F(diff,d+1),F(diff+2,d)];
+                    explanation=`При еднакви знаменатели изваждаме числителите: ${a}−${b}=${diff}.`;
+                    break;
+                }
+                case 13: {
+                    const a=5+(z%9), b=12+((z*3)%11), n1=a-1, n2=1;
+                    const g=gcd(a,b), l=a*b/g, diff=n1*(l/a)-n2*(l/b);
+                    const safe=Math.max(1,diff);
+                    qText=`Пресметнете: ${U(n1,a)} − ${U(n2,b)} = ?`;
+                    correctAns=F(safe,l);
+                    wrong=[F(safe+1,l),F(n1-n2,Math.abs(a-b)||2),F(safe,l+1)];
+                    explanation=`Привеждаме под НОЗ ${l}, след което изваждаме числителите.`;
+                    break;
+                }
+                case 14: {
+                    const d1 = 5 + (z % 7), d2 = 4 + ((z * 3) % 8);
+                    const a = 1 + (z % (d1 - 1)), b = 1 + ((z * 2) % (d2 - 1));
+                    const same = i % 2 === 0;
+                    const den2 = same ? d1 : d2;
+                    const mode = i % 4;
+                    if (mode < 2) {
+                        const numerator = same ? a + b : a * den2 + b * d1;
+                        const denominator = same ? d1 : d1 * den2;
+                        qText = same
+                            ? `Пресметнете и съкратете, ако е възможно: ${U(a,d1)} + ${U(b,d1)}.`
+                            : `Пресметнете и съкратете, ако е възможно: ${U(a,d1)} + ${U(b,den2)}.`;
+                        correctAns = F(numerator, denominator);
+                        wrong = [F(numerator+1,denominator), F(numerator,denominator+1), F(Math.max(1,numerator-1),denominator)];
+                        explanation = same
+                            ? `При еднакви знаменатели събираме числителите: ${a}+${b}=${a+b}, а знаменателя запазваме.`
+                            : `НОЗ(${d1}, ${den2})=${denominator}. Разширяваме дробите, събираме числителите и съкращаваме резултата, ако може.`;
+                    } else {
+                        const leftN = same ? Math.max(a,b)+3 : d1-1;
+                        const rightN = same ? Math.min(a,b) : 1;
+                        const numerator = same ? leftN-rightN : leftN*den2-rightN*d1;
+                        const denominator = same ? d1 : d1*den2;
+                        qText = same
+                            ? `Пресметнете: ${U(leftN,d1)} − ${U(rightN,d1)}.`
+                            : `Пресметнете: ${U(leftN,d1)} − ${U(rightN,den2)}.`;
+                        correctAns = F(numerator,denominator);
+                        wrong = [F(numerator+1,denominator), F(Math.max(1,numerator-1),denominator), F(numerator,denominator+1)];
+                        explanation = same
+                            ? `Знаменателите са еднакви: ${leftN}−${rightN}=${numerator}.`
+                            : `Привеждаме дробите към общ знаменател ${denominator}, след което изваждаме числителите.`;
+                    }
+                    break;
+                }
+                case 15: {
+                    const d=5+z, a=1+(z%4), x=2+((z*3)%7), b=1+((z*2)%5);
+                    const xf=F(x,d), af=F(a,d), bf=F(b,d);
+                    if(i%3===1) {
+                        qText=`Решете: x + ${af} = ${F(x+a,d)}.`;
+                        correctAns=xf; wrong=[F(x+1,d),af,F(x,d+1)];
+                        explanation=`x = ${F(x+a,d)} − ${af} = ${xf}.`;
+                    } else if(i%3===2) {
+                        qText=`Решете: x − ${af} = ${F(x,d)}.`;
+                        correctAns=F(x+a,d); wrong=[xf,af,F(x+a,d+1)];
+                        explanation=`Неизвестното умаляемо е разликата плюс умалителя: x=${F(x,d)}+${af}.`;
+                    } else {
+                        qText=`Решете: ${F(x+a,d)} − x = ${af}.`;
+                        correctAns=xf; wrong=[af,F(x+1,d),F(x,d+1)];
+                        explanation=`Неизвестният умалител е умаляемото минус разликата.`;
+                    }
+                    break;
+                }
+                case 16: {
+                    const w = 2 + (z % 9), n = 1 + (z % 6), d = n + 3 + (z % 8);
+                    const improper = w*d+n;
+                    const mode = i % 5;
+                    if (mode === 0) {
+                        qText = `Коя неправилна дроб е равна на смесеното число ${M(w,n,d)}?`;
+                        correctAns = U(improper,d);
+                        wrong = [U(improper+1,d), U(improper,d+1), U(w+n,d)];
+                        explanation = `Преобразуваме: ${w}·${d}+${n}=${improper}, следователно ${M(w,n,d)}=${U(improper,d)}.`;
+                    } else if (mode === 1) {
+                        qText = `Кое смесено число е равно на неправилната дроб ${U(improper,d)}?`;
+                        correctAns = M(w,n,d);
+                        wrong = [M(w+1,n,d), M(w,n+1,d), M(w-1,n,d)];
+                        explanation = `${improper}:${d}=${w} с остатък ${n}, затова получаваме ${M(w,n,d)}.`;
+                    } else if (mode === 2) {
+                        qText = `Колко още трябва да прибавим към ${M(w,n,d)}, за да получим следващото цяло число?`;
+                        correctAns = U(d-n,d);
+                        wrong = [U(n,d), U(d-n+1,d), U(d-n,d+1)];
+                        explanation = `До следващото цяло липсва ${d}/${d}−${n}/${d}=${d-n}/${d}.`;
+                    } else if (mode === 3) {
+                        qText = `Кое сравнение е вярно за ${M(w,n,d)} и ${w+1}?`;
+                        correctAns = `${M(w,n,d)} < ${w+1}`;
+                        wrong = [`${M(w,n,d)} > ${w+1}`, `${M(w,n,d)} = ${w+1}`, "Не може да се определи"];
+                        explanation = `Дробната част ${U(n,d)} е по-малка от едно цяло, следователно ${M(w,n,d)} е по-малко от ${w+1}.`;
+                    } else {
+                        qText = `В съд има ${M(w,n,d)} литра сок. Колко цели литра има в съда?`;
+                        correctAns = `${w}`;
+                        wrong = [`${w+1}`, `${n}`, `${d}`];
+                        explanation = `Цялата част ${w} показва пълните литри; ${U(n,d)} е допълнителната част от литъра.`;
+                    }
+                    break;
+                }
+                case 17: {
+                    const w=3+(z%12), d=5+(z%9), n=1+(z%(d-1)), improper=w*d+n;
+                    if(i%2) {
+                        qText=`Преобразувайте ${M(w,n,d)} в неправилна дроб.`;
+                        correctAns=U(improper,d); wrong=[U(improper+1,d),U(improper,d+1),U(improper-1,d)];
+                        explanation=`(${w}·${d}+${n})/${d}=${U(improper,d)}.`;
+                    } else {
+                        qText=`Преобразувайте неправилната дроб ${U(improper,d)} в смесено число.`;
+                        correctAns=M(w,n,d); wrong=[M(w+1,n,d),M(w,n+1,d),M(w-1,n,d)];
+                        explanation=`${improper} : ${d} = ${w} остатък ${n}; получаваме ${M(w,n,d)}.`;
+                    }
+                    break;
+                }
+                case 18: {
+                    const d=7+(z%9), wa=2+(z%8), wb=1+((z*2)%7), a=1+(z%(d-1)), b=1+((z*3)%(d-1));
+                    const total=wa+wb+Math.floor((a+b)/d), rem=(a+b)%d;
+                    qText=`Съберете смесените числа: ${M(wa,a,d)} + ${M(wb,b,d)} = ?`;
+                    correctAns=rem?M(total,rem,d):`${total}`;
+                    wrong=[`${total+1}`,M(total+1,Math.max(1,rem),d),M(Math.max(0,total-1),Math.max(1,rem),d)];
+                    explanation=`Събираме целите и дробните части; при нужда пренасяме цяла единица от дробната част.`;
+                    break;
+                }
+                case 19: {
+                    const d=8+(z%9), wb=1+(z%6), wa=wb+3+(z%5), b=1+(z%(d-2)), a=b+1;
+                    qText=`Извадете смесените числа: ${M(wa,a,d)} − ${M(wb,b,d)} = ?`;
+                    correctAns=M(wa-wb,1,d);
+                    wrong=[M(wa-wb-1,1,d),M(wa-wb,2,d),M(wa-wb+1,1,d)];
+                    explanation=`Изваждаме целите части и дробните части поотделно: (${wa}−${wb}) + (${a}/${d}−${b}/${d}).`;
+                    break;
+                }
+                case 20: {
+                    const d=25+z, a=1+((z*7)%(d-1)), b=1+((z*11)%(d-1)), w=2+z;
+                    if(i%2) {
+                        const n=a+b, whole=w+Math.floor(n/d), rem=n%d;
+                        qText=`Пресметнете: ${M(w,a,d)} + ${U(b,d)} = ?`;
+                        correctAns=rem?M(whole,rem,d):`${whole}`;
+                        wrong=[`${whole+1}`,M(whole+1,Math.max(1,rem),d),M(Math.max(0,whole-1),Math.max(1,rem),d)];
+                        explanation=`Събираме дробните части ${a}/${d}+${b}/${d}, а цялата част е ${w}.`;
+                    } else {
+                        const n=a-b;
+                        qText=`Пресметнете: ${M(w,a,d)} − ${U(b,d)} = ?`;
+                        correctAns=n>0?M(w,n,d):(n===0?`${w}`:M(w-1,d+n,d));
+                        wrong=[`${w}`,M(w+1,Math.max(1,Math.abs(n)),d),M(Math.max(0,w-1),Math.max(1,Math.abs(n)+1),d)];
+                        explanation=`Изваждаме дробните части; когато не достигат, заемаме една цяла единица.`;
+                    }
+                    break;
+                }
+                default: {
+                    qText=`Колко е ${U(1,2)} + ${U(1,2)}?`; correctAns="1";
+                    wrong=["0",U(1,2),"2"]; explanation="Сборът е едно цяло.";
+                }
+            }
+            const options=[correctAns,...wrong].filter((v,idx,arr)=>arr.indexOf(v)===idx);
+            // Ако някой дистрактор съвпада с верния отговор, използваме ясен резервен избор,
+            // вместо технически текст от типа „Отговор 4“.
+            const fallbackOptions = ["Няма верен отговор", "Не може да се определи"];
+            while (options.length < 4) {
+                const fallback = fallbackOptions.find(value => !options.includes(value));
+                options.push(fallback || `Вариант ${options.length + 1}`);
+            }
+            const shuffled=options.slice().sort(()=>Math.random()-0.5);
+            return {qText, options:shuffled, correctAns, explanation};
+        }
+
+        // Показва всяка дроб от условието с лента и кръгов модел.
+        // Визуализацията се обновява автоматично при всяка нова задача.
+        function renderFractionVisuals(questionHtml) {
+            const host = document.getElementById('fractionVisuals');
+            const parser = document.createElement('div');
+            parser.innerHTML = questionHtml;
+            const fractions = Array.from(parser.querySelectorAll('.math-frac')).map((node) => {
+                const values = Array.from(node.children).map(el => Number(el.textContent.trim()));
+                if (values.length < 2 || !Number.isInteger(values[0]) || !Number.isInteger(values[1]) || values[1] <= 0 || values[1] > 24) return null;
+                const mixed = node.closest('.math-mixed');
+                const wholeNode = mixed ? mixed.querySelector(':scope > .font-bold') : null;
+                return { numerator: values[0], denominator: values[1], whole: wholeNode ? Number(wholeNode.textContent.trim()) : 0 };
+            }).filter(Boolean);
+
+            if (!fractions.length) {
+                host.innerHTML = '';
+                host.classList.add('hidden');
+                return;
+            }
+
+            host.classList.remove('hidden');
+            host.innerHTML = `<div class="fraction-visual-heading">👀 Нека видим дробите – оцветеното показва взетите части</div>` + fractions.map((f, index) => {
+                const totalNumerator = f.numerator + f.whole * f.denominator;
+                const wholeUnits = Math.floor(totalNumerator / f.denominator);
+                const remainder = totalNumerator % f.denominator;
+                const wholeBars = Array.from({length: Math.min(wholeUnits, 4)}, () => `<span class="fraction-visual-whole">цяло</span>`).join('');
+                const cells = Array.from({length: f.denominator}, (_, i) =>
+                    `<span class="fraction-visual-cell ${i < remainder ? 'filled' : ''}"></span>`).join('');
+                const fractionLabel = f.whole ? `${f.whole} ${f.numerator}/${f.denominator}` : `${f.numerator}/${f.denominator}`;
+                const angle = remainder / f.denominator * 360;
+                const circle = remainder
+                    ? `<div class="fraction-visual-circle" role="img" aria-label="Кръг: ${remainder} от ${f.denominator} части са оцветени" style="background:conic-gradient(from -90deg, #818cf8 0deg ${angle}deg, #ffffff ${angle}deg 360deg)"></div>`
+                    : `<div class="fraction-visual-circle" role="img" aria-label="Едно или повече цели" style="background:#d1fae5"></div>`;
+                const bar = `<div class="fraction-visual-bar" style="grid-template-columns:repeat(${f.denominator}, minmax(1px, 1fr))">${cells}</div>`;
+                const wholeText = wholeUnits ? `${wholeUnits} ${wholeUnits === 1 ? 'цяла единица' : 'цели единици'}` : 'по-малко от едно цяло';
+                return `<div class="fraction-visual-card">
+                    <div class="text-xs font-bold text-slate-500 mb-1">Дроб ${index + 1}</div>
+                    <div class="font-extrabold text-indigo-900 text-lg">${fractionLabel}</div>
+                    ${wholeBars ? `<div class="flex flex-wrap gap-1 mt-2">${wholeBars}</div>` : ''}
+                    ${circle}
+                    <div class="fraction-visual-note text-center">Кръгът показва остатъка от едно цяло.</div>
+                    ${bar}
+                    <div class="fraction-visual-note mt-2">Знаменател: ${f.denominator} равни части. Оцветени: ${remainder} от ${f.denominator}. Общо: ${wholeText}.</div>
+                </div>`;
+            }).join('');
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIdx >= currentProblems.length) {
+                finishLevel();
+                return;
+            }
+
+            const q = currentProblems[currentQuestionIdx];
+            document.getElementById('currentQNum').innerText = currentQuestionIdx + 1;
+            document.getElementById('qIndexBadge').innerText = currentQuestionIdx + 1;
+            document.getElementById('questionText').innerHTML = q.qText;
+            renderFractionVisuals(q.qText);
+
+            const optContainer = document.getElementById('optionsContainer');
+            optContainer.innerHTML = q.options.map(opt => `
+                <button onclick="selectAnswer(this, '${escapeQuotes(opt)}', '${escapeQuotes(q.correctAns)}')" class="p-4 bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-400 rounded-2xl font-bold text-slate-800 text-base transition text-center shadow-sm flex items-center justify-center">
+                    ${opt}
+                </button>
+            `).join('');
+
+            document.getElementById('feedbackBox').classList.add('hidden');
+            document.getElementById('nextQuestionBtn').classList.add('hidden');
+        }
+
+        function escapeQuotes(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function selectAnswer(btnElement, selected, correct) {
+            const buttons = document.querySelectorAll('#optionsContainer button');
+            buttons.forEach(b => b.disabled = true);
+
+            const isCorrect = (selected.trim() === correct.trim());
+            const feedbackBox = document.getElementById('feedbackBox');
+            feedbackBox.classList.remove('hidden');
+
+            sessionLogs.push({
+                student: studentName,
+                topicId: currentTopicId,
+                level: currentLevel,
+                question: currentProblems[currentQuestionIdx].qText,
+                selected,
+                correct,
+                isCorrect,
+                time: new Date().toLocaleTimeString(),
+                date: new Date().toISOString(),
+                topicName: (topics.find(t => t.id === currentTopicId) || {}).name || `Тема ${currentTopicId}`
+            });
+
+            if (isCorrect) {
+                playTone('correct');
+                totalScore += 10;
+                document.getElementById('headerScore').innerText = totalScore;
+                btnElement.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                feedbackBox.className = "p-4 rounded-2xl mb-4 text-sm font-medium bg-emerald-50 text-emerald-900 border border-emerald-200";
+                feedbackBox.innerHTML = `✅ <strong>Отличен отговор! Верен е!</strong> Спечели +10 точки.<br><span class="text-xs mt-1 block opacity-80">${currentProblems[currentQuestionIdx].explanation}</span>`;
+            } else {
+                playTone('wrong');
+                btnElement.classList.add('bg-rose-100', 'border-rose-500', 'text-rose-900');
+                
+                buttons.forEach(b => {
+                    if (b.innerHTML.trim() === correct.trim()) {
+                        b.classList.add('border-emerald-500', 'bg-emerald-50');
+                    }
+                });
+
+                feedbackBox.className = "p-4 rounded-2xl mb-4 text-sm font-medium bg-rose-50 text-rose-900 border border-rose-200";
+                feedbackBox.innerHTML = `❌ <strong>Грешен отговор.</strong> Верният отговор е <strong>${correct}</strong>.<br><span class="text-xs mt-1 block opacity-80">${currentProblems[currentQuestionIdx].explanation}</span>`;
+            }
+
+            document.getElementById('nextQuestionBtn').classList.remove('hidden');
+            saveUserData();
+        }
+
+        function nextQuestion() {
+            currentQuestionIdx++;
+            playTone('click');
+            loadQuestion();
+        }
+
+        function finishLevel() {
+            document.getElementById('viewGame').classList.add('hidden');
+            document.getElementById('viewComplete').classList.remove('hidden');
+            playTone('correct');
+
+            let title = "Магьосник на дробите";
+            if (totalScore >= 500) title = "Кралски математик 👑";
+            else if (totalScore >= 200) title = "Майстор на числата ⭐";
+
+            document.getElementById('completeSubtitle').innerText = `Ти успешно завърши Тема ${currentTopicId} (Ниво ${currentLevel})!`;
+            const earnedThisLevel = totalScore - levelStartScore;
+            document.getElementById('completeScoreEarned').innerText = `+${earnedThisLevel} т.`;
+            document.getElementById('completeTitleBadge').innerText = `Титла: ${title}`;
+        }
+
+        function backToMap() {
+            playTone('click');
+            document.getElementById('viewGame').classList.add('hidden');
+            document.getElementById('viewComplete').classList.add('hidden');
+            document.getElementById('viewLeaderboard').classList.add('hidden');
+            document.getElementById('viewAdminDashboard').classList.add('hidden');
+            document.getElementById('viewMap').classList.remove('hidden');
+            renderTopicsMap();
+        }
+
+        function openLiveLeaderboard() {
+            playTone('click');
+            document.getElementById('viewMap').classList.add('hidden');
+            document.getElementById('viewLeaderboard').classList.remove('hidden');
+
+            let list = JSON.parse(localStorage.getItem('fraction_leaderboard') || '[]');
+            if (studentName) {
+                let existing = list.find(x => x.name === studentName);
+                if (existing) existing.score = totalScore;
+                else list.push({ name: studentName, avatar: selectedAvatar, score: totalScore });
+            }
+            list.sort((a, b) => b.score - a.score);
+            localStorage.setItem('fraction_leaderboard', JSON.stringify(list));
+
+            const container = document.getElementById('leaderboardList');
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 py-4">Все още няма класирани участници.</p>`;
+                return;
+            }
+
+            container.innerHTML = list.map((item, idx) => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-center space-x-3">
+                        <span class="font-extrabold text-indigo-900 w-6 text-center">#${idx + 1}</span>
+                        <span class="text-2xl">${item.avatar || '🦊'}</span>
+                        <span class="font-bold text-slate-800">${item.name}</span>
+                    </div>
+                    <span class="bg-amber-400 text-amber-950 font-bold px-3 py-1 rounded-full text-xs">${item.score} т.</span>
+                </div>
+            `).join('');
+        }
+
+        function openAdminAuth() {
+            playTone('click');
+            document.getElementById('modalAdminAuth').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        function closeAdminAuth() {
+            playTone('click');
+            document.getElementById('modalAdminAuth').classList.add('hidden');
+        }
+
+        function verifyAdminPassword() {
+            const pass = document.getElementById('adminPasswordInput').value;
+            if (pass === 'teacher123' || pass === 'admin') {
+                closeAdminAuth();
+                playTone('correct');
+                openAdminDashboard();
+            } else {
+                playTone('wrong');
+                alert('Грешна парола! Опитайте отново.');
+            }
+        }
+
+        function openAdminDashboard() {
+            document.getElementById('viewLogin').classList.add('hidden');
+            document.getElementById('viewMap').classList.add('hidden');
+            document.getElementById('viewAdminDashboard').classList.remove('hidden');
+            switchAdminTab('logs');
+            renderAdminOverview();
+            renderAdminLogs();
+            renderAdminTestBank();
+        }
+
+        function switchAdminTab(tab) {
+            playTone('click');
+            const tabs = {
+                logs: ['adminTabLogs', 'tabBtnLogs'],
+                tests: ['adminTabTests', 'tabBtnTests'],
+                ranking: ['adminTabRanking', 'tabBtnRanking']
+            };
+            Object.values(tabs).forEach(([panelId, buttonId]) => {
+                document.getElementById(panelId).classList.add('hidden');
+                document.getElementById(buttonId).className = "px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition";
+            });
+            const [activePanel, activeButton] = tabs[tab] || tabs.logs;
+            document.getElementById(activePanel).classList.remove('hidden');
+            document.getElementById(activeButton).className = "px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl text-xs transition";
+            if (tab === 'ranking') renderAdminRanking();
+            if (tab === 'logs') { renderAdminOverview(); renderAdminLogs(); }
+        }
+
+        function renderAdminRanking() {
+            const container = document.getElementById('adminRankingList');
+            const list = JSON.parse(localStorage.getItem('fraction_leaderboard') || '[]').sort((a, b) => b.score - a.score);
+            if (!list.length) {
+                container.innerHTML = '<p class="text-center text-slate-400 py-4">Класирането е празно.</p>';
+                return;
+            }
+            container.innerHTML = list.map((item, index) => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="flex items-center gap-3"><strong class="text-indigo-900">#${index + 1}</strong><span class="text-xl">${item.avatar || '🦊'}</span><strong class="text-slate-800">${item.name}</strong></div>
+                    <span class="font-bold text-amber-700">${item.score} т.</span>
+                </div>`).join('');
+        }
+
+        function clearLeaderboard() {
+            if (!confirm('Сигурни ли сте, че искате да изчистите класирането? Подробните отговори на учениците ще бъдат запазени.')) return;
+            localStorage.removeItem('fraction_leaderboard');
+            renderAdminRanking();
+            alert('Класирането е изчистено. Отговорите на учениците са запазени.');
+        }
+
+        function getTeacherLogs() {
+            try { return JSON.parse(localStorage.getItem('fraction_logs') || '[]'); }
+            catch (e) { return []; }
+        }
+
+        function renderAdminOverview() {
+            const logs = getTeacherLogs();
+            const students = [...new Set(logs.map(x => (x.student || 'Неизвестен ученик').trim()))];
+            const correct = logs.filter(x => x.isCorrect).length;
+            const accuracy = logs.length ? Math.round(correct / logs.length * 100) : 0;
+            const cards = [
+                { label: 'Ученици', value: students.length, icon: '👩‍🎓' },
+                { label: 'Решени задачи', value: logs.length, icon: '📝' },
+                { label: 'Верни отговори', value: correct, icon: '✅' },
+                { label: 'Успеваемост', value: `${accuracy}%`, icon: '🎯' }
+            ];
+            const cardHost = document.getElementById('adminOverviewCards');
+            if (cardHost) cardHost.innerHTML = cards.map(c => `
+                <div class="bg-white rounded-xl border border-indigo-100 p-3">
+                    <div class="text-lg">${c.icon}</div>
+                    <div class="text-xl font-extrabold text-indigo-950">${c.value}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wide text-slate-500">${c.label}</div>
+                </div>`).join('');
+
+            const topicHost = document.getElementById('adminTopicStats');
+            if (!topicHost) return;
+            if (!logs.length) {
+                topicHost.innerHTML = '<p class="text-xs text-slate-500 bg-white rounded-xl p-3">Все още няма данни. Когато учениците решават задачи на това устройство, тук ще се появи обобщение.</p>';
+                return;
+            }
+            const grouped = {};
+            logs.forEach(log => {
+                const id = Number(log.topicId) || 0;
+                if (!grouped[id]) grouped[id] = { total: 0, correct: 0 };
+                grouped[id].total++;
+                if (log.isCorrect) grouped[id].correct++;
+            });
+            topicHost.innerHTML = Object.entries(grouped).sort((a,b) => Number(a[0])-Number(b[0])).map(([id, stat]) => {
+                const topic = topics.find(t => t.id === Number(id));
+                const name = topic ? topic.name : `Тема ${id}`;
+                const pct = Math.round(stat.correct / stat.total * 100);
+                const tone = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+                return `<div class="bg-white rounded-xl border border-slate-100 p-3">
+                    <div class="flex justify-between gap-2 text-xs mb-2"><strong class="text-slate-700">${topic ? topic.icon : '📘'} ${name}</strong><span class="font-bold text-slate-600">${pct}% · ${stat.correct}/${stat.total}</span></div>
+                    <div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full ${tone} rounded-full" style="width:${pct}%"></div></div>
+                </div>`;
+            }).join('');
+        }
+
+        function exportTeacherReport() {
+            const logs = getTeacherLogs();
+            if (!logs.length) { alert('Няма данни за изтегляне.'); return; }
+            const rows = [['Ученик','Тема','Ниво','Задача','Отговор на ученика','Правилен отговор','Резултат','Дата']];
+            logs.forEach(log => rows.push([
+                log.student || '',
+                log.topicName || ((topics.find(t => t.id === Number(log.topicId)) || {}).name || `Тема ${log.topicId || ''}`),
+                log.level || '',
+                String(log.question || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+                log.selected || '', log.correct || '', log.isCorrect ? 'Верен' : 'Грешен',
+                log.date || log.time || ''
+            ]));
+            const csv = '\ufeff' + rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'otchet_magichesko_kralstvo.csv';
+            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        }
+
+        function renderAdminLogs() {
+            const container = document.getElementById('adminStudentLogsList');
+            const allLogs = JSON.parse(localStorage.getItem('fraction_logs') || '[]');
+
+            if (allLogs.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 py-4">Все още няма регистрирани отговори от ученици.</p>`;
+                return;
+            }
+
+            // Групиране по име: учителят първо вижда списък с учениците.
+            const students = {};
+            allLogs.forEach(log => {
+                const name = (log.student || 'Неизвестен ученик').trim();
+                if (!students[name]) students[name] = [];
+                students[name].push(log);
+            });
+
+            container.innerHTML = Object.entries(students).sort((a, b) => a[0].localeCompare(b[0], 'bg')).map(([name, logs], studentIndex) => {
+                const correctCount = logs.filter(log => log.isCorrect).length;
+                const wrongCount = logs.length - correctCount;
+                const details = logs.map((log, index) => `
+                    <div class="p-3 bg-white rounded-xl border border-slate-100 text-xs">
+                        <div class="flex flex-wrap justify-between gap-2 mb-2">
+                            <strong class="text-indigo-900">${index + 1}. Тема ${log.topicId}, Ниво ${log.level}</strong>
+                            <span class="px-2 py-1 rounded-lg font-bold ${log.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${log.isCorrect ? 'Верен отговор' : 'Грешен отговор'}</span>
+                        </div>
+                        <p class="text-slate-700 mb-2">${log.question}</p>
+                        <p>Отговор на ученика: <strong class="${log.isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${log.selected}</strong></p>
+                        ${!log.isCorrect ? `<p class="text-slate-600 mt-1">Правилен отговор: <strong>${log.correct}</strong></p>` : ''}
+                        <p class="text-[10px] text-slate-400 mt-1">${log.time || ''}</p>
+                    </div>
+                `).join('');
+                return `
+                    <details class="group bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden" ${studentIndex === 0 ? '' : ''}>
+                        <summary class="list-none cursor-pointer p-4 flex flex-wrap items-center justify-between gap-3 hover:bg-indigo-50">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-lg">👤</span>
+                                <div><div class="font-extrabold text-indigo-950">${name}</div><div class="text-[11px] text-slate-500">${logs.length} отговора</div></div>
+                            </div>
+                            <div class="flex items-center gap-2 text-[11px] font-bold"><span class="text-emerald-700">✓ ${correctCount}</span><span class="text-rose-700">✕ ${wrongCount}</span><span class="text-indigo-600 ml-1">Виж отговорите⌄</span></div>
+                        </summary>
+                        <div class="p-3 pt-0 space-y-2">${details}</div>
+                    </details>
+                `;
+            }).join('');
+        }
+
+        function renderAdminTestBank() {
+            const container = document.getElementById('adminTestBankList');
+            container.innerHTML = topics.map(t => {
+                const sample = [2, 9, 17].map(n => generateSingleProblem(t.id, 2, n));
+                return `
+                <section class="p-4 bg-white rounded-2xl border-2 border-indigo-100 shadow-sm">
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        <h4 class="font-extrabold text-sm text-indigo-950">Тема ${t.id}: ${t.name}</h4>
+                        <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">КУИЗ • 3 въпроса</span>
+                    </div>
+                    <div class="space-y-4">
+                        ${sample.map((p, idx) => `
+                            <div class="admin-quiz-question p-3 bg-slate-50 rounded-xl border border-slate-200" data-correct="${encodeURIComponent(p.correctAns)}" data-explanation="${encodeURIComponent(p.explanation)}">
+                                <div class="flex items-start gap-2 mb-3">
+                                    <span class="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-extrabold flex items-center justify-center">${idx + 1}</span>
+                                    <div class="text-sm font-semibold text-slate-800 leading-relaxed">${p.qText}</div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    ${p.options.map(opt => `
+                                        <button type="button" onclick="adminSelectTestAnswer(this)"
+                                            data-answer="${encodeURIComponent(opt)}"
+                                            class="admin-quiz-option p-3 bg-white hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-400 rounded-xl text-sm font-bold text-slate-700 transition text-left">
+                                            ${opt}
+                                        </button>`).join('')}
+                                </div>
+                                <div class="admin-quiz-feedback hidden mt-3 p-3 rounded-xl text-xs leading-relaxed"></div>
+                            </div>`).join('')}
+                    </div>
+                </section>`;
+            }).join('');
+        }
+
+        function adminSelectTestAnswer(button) {
+            const question = button.closest('.admin-quiz-question');
+            if (!question || question.dataset.answered === 'true') return;
+            const selected = decodeURIComponent(button.dataset.answer || '');
+            const correct = decodeURIComponent(question.dataset.correct || '');
+            const explanation = decodeURIComponent(question.dataset.explanation || '');
+            const isCorrect = selected.trim() === correct.trim();
+            question.dataset.answered = 'true';
+            question.querySelectorAll('.admin-quiz-option').forEach(option => {
+                option.disabled = true;
+                option.classList.add('opacity-70', 'cursor-not-allowed');
+                if (decodeURIComponent(option.dataset.answer || '').trim() === correct.trim()) {
+                    option.classList.remove('opacity-70');
+                    option.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900');
+                }
+            });
+            if (!isCorrect) {
+                button.classList.remove('bg-white');
+                button.classList.add('bg-rose-50', 'border-rose-500', 'text-rose-900');
+            }
+            const feedback = question.querySelector('.admin-quiz-feedback');
+            feedback.classList.remove('hidden');
+            feedback.classList.add(isCorrect ? 'bg-emerald-50' : 'bg-rose-50', isCorrect ? 'text-emerald-900' : 'text-rose-900', 'border', isCorrect ? 'border-emerald-200' : 'border-rose-200');
+            feedback.innerHTML = `${isCorrect ? '✅ <strong>Верен отговор!</strong>' : `❌ <strong>Не е верен.</strong> Правилен отговор: <strong>${correct}</strong>.`}<br><span class="block mt-1">${explanation}</span>`;
+        }
+
+        function saveUserData() {
+            if (!studentName) return;
+            let list = JSON.parse(localStorage.getItem('fraction_leaderboard') || '[]');
+            let existing = list.find(x => x.name === studentName);
+            if (existing) existing.score = totalScore;
+            else list.push({ name: studentName, avatar: selectedAvatar, score: totalScore });
+            localStorage.setItem('fraction_leaderboard', JSON.stringify(list));
+
+            let allLogs = JSON.parse(localStorage.getItem('fraction_logs') || '[]');
+            const latestLog = sessionLogs[sessionLogs.length - 1];
+            if (latestLog && !allLogs.some(log => log === latestLog || (log.student === latestLog.student && log.topicId === latestLog.topicId && log.level === latestLog.level && log.question === latestLog.question && log.time === latestLog.time))) {
+                allLogs.push(latestLog);
+            }
+            localStorage.setItem('fraction_logs', JSON.stringify(allLogs));
+        }
+
+        // ===== SUPABASE ONLINE CLASSROOM =====
+        // Supabase project connection. Use the project root URL (without /rest/v1).
+        const SUPABASE_URL = 'https://escywaoqvzsdycidxwxq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_YQQo4j1NJXjE-p--GrSXMA_i8F8n0oz';
+        const supabaseConfigured = window.supabase && SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PASTE_') && !SUPABASE_ANON_KEY.includes('PASTE_');
+        const supabaseClient = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        let currentStudentId = null;
+        let currentClassId = null;
+        let selectedTeacherClassId = null;
+        let teacherClassesCache = [];
+        let remoteStudentsCache = [];
+        let remoteLogsCache = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        async function startGameSession() {
+            const nameInput = document.getElementById('inputStudentName').value.trim().replace(/\s+/g, ' ');
+            const classCode = document.getElementById('inputClassCode').value.trim().toUpperCase();
+            if (nameInput.split(' ').length < 2) { alert('Моля, въведи име и фамилия.'); return; }
+            if (!classCode) { alert('Моля, въведи кода на класа, даден от учителя.'); return; }
+            if (!supabaseClient) { alert('Играта още не е свързана със Supabase. Провери настройките за връзка със Supabase в HTML файла.'); return; }
+            const startButton = document.querySelector('#viewLogin button[onclick="startGameSession()"]');
+            if (startButton) { startButton.disabled = true; startButton.textContent = 'Свързване...'; }
+            try {
+                // A fresh anonymous identity per play session keeps students on shared devices separate.
+                const { error: signOutError } = await supabaseClient.auth.signOut();
+                if (signOutError) throw signOutError;
+                const { data: authData, error: authError } = await supabaseClient.auth.signInAnonymously();
+                if (authError) throw authError;
+                const { data: joined, error: joinError } = await supabaseClient.rpc('join_class', {
+                    p_join_code: classCode,
+                    p_display_name: nameInput,
+                    p_avatar: selectedAvatar
+                });
+                if (joinError) throw joinError;
+                const membership = Array.isArray(joined) ? joined[0] : joined;
+                if (!membership || !membership.student_id || !membership.class_id) throw new Error('Кодът на класа не е разпознат. Провери го с учителя.');
+                studentName = nameInput;
+                currentStudentId = membership.student_id;
+                currentClassId = membership.class_id;
+                totalScore = 0;
+                sessionLogs = [];
+                document.getElementById('headerAvatar').innerText = selectedAvatar;
+                document.getElementById('headerName').innerText = studentName;
+                document.getElementById('headerScore').innerText = totalScore;
+                document.getElementById('userInfoHeader').classList.remove('hidden');
+                document.getElementById('viewLogin').classList.add('hidden');
+                document.getElementById('viewMap').classList.remove('hidden');
+                renderTopicsMap();
+            } catch (error) {
+                console.error('Student sign-in failed:', error);
+                alert('Не успяхме да те включим в класа. ' + (error.message || 'Провери интернет връзката и кода на класа.'));
+            } finally {
+                if (startButton) { startButton.disabled = false; startButton.textContent = 'Влез в приключението 🚀'; }
+            }
+        }
+
+        async function saveUserData() {
+            if (!supabaseClient || !currentStudentId || !currentClassId || !sessionLogs.length) return;
+            const latestLog = sessionLogs[sessionLogs.length - 1];
+            if (latestLog._uploaded) return;
+            const payload = {
+                class_id: currentClassId,
+                student_id: currentStudentId,
+                topic_id: Number(latestLog.topicId),
+                topic_name: latestLog.topicName || '',
+                level: Number(latestLog.level),
+                question_index: Number(currentQuestionIdx + 1),
+                question: String(latestLog.question || '').slice(0, 2000),
+                selected_answer: String(latestLog.selected || '').slice(0, 500),
+                correct_answer: String(latestLog.correct || '').slice(0, 500),
+                is_correct: Boolean(latestLog.isCorrect),
+                points_earned: latestLog.isCorrect ? 10 : 0
+            };
+            try {
+                const { error } = await supabaseClient.from('attempts').insert(payload);
+                if (error) throw error;
+                latestLog._uploaded = true;
+            } catch (error) {
+                console.error('Attempt upload failed:', error);
+                alert('Отговорът е отчетен в играта, но не успяхме да го запишем онлайн. Провери връзката и опитай отново да влезеш в класа.');
+            }
+        }
+
+        function openAdminAuth() {
+            playTone('click');
+            document.getElementById('modalAdminAuth').classList.remove('hidden');
+            document.getElementById('adminEmailInput').value = '';
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        async function verifyAdminPassword() {
+            if (!supabaseClient) { alert('Supabase още не е конфигуриран. Провери настройките за връзка със Supabase в HTML файла.'); return; }
+            const email = document.getElementById('adminEmailInput').value.trim();
+            const password = document.getElementById('adminPasswordInput').value;
+            if (!email || !password) { alert('Въведи имейл и парола.'); return; }
+            try {
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                const { data: teacherRow, error: teacherError } = await supabaseClient.from('teachers').select('user_id').maybeSingle();
+                if (teacherError || !teacherRow) {
+                    await supabaseClient.auth.signOut();
+                    throw new Error('Този акаунт няма учителски права. Добави го в таблицата teachers според инструкциите.');
+                }
+                closeAdminAuth();
+                playTone('correct');
+                await openAdminDashboard();
+            } catch (error) {
+                console.error('Teacher login failed:', error);
+                playTone('wrong');
+                alert(error.message || 'Неуспешен вход. Провери имейла и паролата.');
+            }
+        }
+
+        async function openAdminDashboard() {
+            document.getElementById('viewLogin').classList.add('hidden');
+            document.getElementById('viewMap').classList.add('hidden');
+            document.getElementById('viewGame').classList.add('hidden');
+            document.getElementById('viewAdminDashboard').classList.remove('hidden');
+            renderAdminTestBank();
+            await loadTeacherClasses();
+        }
+
+        async function loadTeacherClasses() {
+            const select = document.getElementById('teacherClassSelect');
+            select.innerHTML = '<option value="">Зареждане...</option>';
+            const { data, error } = await supabaseClient.from('classes').select('id,name,join_code,created_at').order('created_at', { ascending: true });
+            if (error) { console.error(error); select.innerHTML = '<option value="">Грешка при зареждане</option>'; alert('Не успяхме да заредим класовете: ' + error.message); return; }
+            teacherClassesCache = data || [];
+            select.innerHTML = teacherClassesCache.length ? teacherClassesCache.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('') : '<option value="">Все още няма създаден клас</option>';
+            selectedTeacherClassId = teacherClassesCache[0]?.id || null;
+            if (selectedTeacherClassId) select.value = selectedTeacherClassId;
+            await loadSelectedClassData();
+        }
+
+        async function createOnlineClass() {
+            const name = document.getElementById('newClassName').value.trim();
+            if (!name) { alert('Въведи име на класа.'); return; }
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            const bytes = new Uint8Array(8); crypto.getRandomValues(bytes);
+            const code = Array.from(bytes, b => chars[b % chars.length]).join('');
+            const { data: userData } = await supabaseClient.auth.getUser();
+            const { error } = await supabaseClient.from('classes').insert({ name, join_code: code, teacher_id: userData.user.id });
+            if (error) { alert('Не успяхме да създадем класа: ' + error.message); return; }
+            document.getElementById('newClassName').value = '';
+            await loadTeacherClasses();
+            const created = teacherClassesCache.find(c => c.join_code === code);
+            if (created) { selectedTeacherClassId = created.id; document.getElementById('teacherClassSelect').value = created.id; await loadSelectedClassData(); }
+            alert('Класът е създаден. Кодът за учениците е: ' + code);
+        }
+
+        async function onTeacherClassChange() {
+            selectedTeacherClassId = document.getElementById('teacherClassSelect').value || null;
+            await loadSelectedClassData();
+        }
+
+        async function loadSelectedClassData() {
+            const currentClass = teacherClassesCache.find(c => c.id === selectedTeacherClassId);
+            document.getElementById('teacherJoinCode').textContent = currentClass?.join_code || '—';
+            if (!selectedTeacherClassId) {
+                remoteStudentsCache = []; remoteLogsCache = [];
+                renderAdminOverview(); renderAdminLogs(); renderAdminRanking(); return;
+            }
+            const [studentsResult, attemptsResult] = await Promise.all([
+                supabaseClient.from('students').select('id,display_name,avatar,created_at').eq('class_id', selectedTeacherClassId).order('display_name'),
+                supabaseClient.from('attempts').select('id,student_id,class_id,topic_id,topic_name,level,question_index,question,selected_answer,correct_answer,is_correct,points_earned,created_at,students(display_name,avatar)').eq('class_id', selectedTeacherClassId).order('created_at', { ascending: false })
+            ]);
+            if (studentsResult.error) throw studentsResult.error;
+            if (attemptsResult.error) throw attemptsResult.error;
+            remoteStudentsCache = studentsResult.data || [];
+            remoteLogsCache = (attemptsResult.data || []).map(a => ({
+                id: a.id, studentId: a.student_id, student: a.students?.display_name || 'Ученик', avatar: a.students?.avatar || '🦊',
+                topicId: a.topic_id, topicName: a.topic_name, level: a.level, question: a.question,
+                selected: a.selected_answer, correct: a.correct_answer, isCorrect: a.is_correct,
+                pointsEarned: a.points_earned, time: new Date(a.created_at).toLocaleString('bg-BG'), date: a.created_at
+            }));
+            renderAdminOverview(); renderAdminLogs(); renderAdminRanking();
+        }
+
+        function copyTeacherJoinCode() {
+            const code = document.getElementById('teacherJoinCode').textContent;
+            if (!code || code === '—') return;
+            navigator.clipboard?.writeText(code).then(() => alert('Кодът е копиран: ' + code)).catch(() => alert('Кодът на класа е: ' + code));
+        }
+
+        function getTeacherLogs() { return remoteLogsCache || []; }
+
+        function renderAdminOverview() {
+            const logs = getTeacherLogs();
+            const studentNames = new Set(remoteStudentsCache.map(s => s.display_name));
+            const correct = logs.filter(x => x.isCorrect).length;
+            const accuracy = logs.length ? Math.round(correct / logs.length * 100) : 0;
+            const cards = [
+                { label: 'Ученици', value: studentNames.size, icon: '👩‍🎓' },
+                { label: 'Решени задачи', value: logs.length, icon: '📝' },
+                { label: 'Верни отговори', value: correct, icon: '✅' },
+                { label: 'Успеваемост', value: `${accuracy}%`, icon: '🎯' }
+            ];
+            document.getElementById('adminOverviewCards').innerHTML = cards.map(c => `<div class="bg-white rounded-xl border border-indigo-100 p-3"><div class="text-lg">${c.icon}</div><div class="text-xl font-extrabold text-indigo-950">${c.value}</div><div class="text-[10px] font-bold uppercase tracking-wide text-slate-500">${c.label}</div></div>`).join('');
+            const grouped = {};
+            logs.forEach(log => { const id = Number(log.topicId) || 0; if (!grouped[id]) grouped[id] = {total:0,correct:0}; grouped[id].total++; if (log.isCorrect) grouped[id].correct++; });
+            const host = document.getElementById('adminTopicStats');
+            if (!logs.length) { host.innerHTML = '<p class="text-xs text-slate-500 bg-white rounded-xl p-3">Все още няма записани резултати за този клас.</p>'; return; }
+            host.innerHTML = Object.entries(grouped).sort((a,b)=>Number(a[0])-Number(b[0])).map(([id,s]) => {
+                const topic = topics.find(t => t.id === Number(id)); const pct = Math.round(s.correct/s.total*100);
+                const tone = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+                return `<div class="bg-white rounded-xl border border-slate-100 p-3"><div class="flex justify-between gap-2 text-xs mb-2"><strong>${topic ? topic.icon+' '+escapeHtml(topic.name) : 'Тема '+id}</strong><span class="font-bold">${pct}% · ${s.correct}/${s.total}</span></div><div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full ${tone} rounded-full" style="width:${pct}%"></div></div></div>`;
+            }).join('');
+        }
+
+        function renderAdminLogs() {
+            const container = document.getElementById('adminStudentLogsList');
+            if (!remoteStudentsCache.length) { container.innerHTML = '<p class="text-center text-slate-400 py-4">В този клас все още няма ученици.</p>'; return; }
+            const byName = new Map();
+            remoteStudentsCache.forEach(s => { if (!byName.has(s.display_name)) byName.set(s.display_name, {name:s.display_name, ids:[], avatar:s.avatar || '🦊', logs:[]}); byName.get(s.display_name).ids.push(s.id); });
+            remoteLogsCache.forEach(log => { const entry = byName.get(log.student); if (entry) entry.logs.push(log); });
+            container.innerHTML = [...byName.values()].sort((a,b)=>a.name.localeCompare(b.name,'bg')).map((entry,index) => {
+                const good = entry.logs.filter(l=>l.isCorrect).length, bad = entry.logs.length-good;
+                const detail = entry.logs.map((log,i)=>`<div class="p-3 bg-white rounded-xl border border-slate-100 text-xs"><div class="flex flex-wrap justify-between gap-2 mb-2"><strong class="text-indigo-900">${i+1}. Тема ${log.topicId}, Ниво ${log.level}</strong><span class="font-bold ${log.isCorrect?'text-emerald-700':'text-rose-700'}">${log.isCorrect?'Верен':'Грешен'}</span></div><p class="mb-1">${escapeHtml(log.question)}</p><p>Отговор: <strong>${escapeHtml(log.selected)}</strong></p>${!log.isCorrect?`<p>Верен отговор: <strong>${escapeHtml(log.correct)}</strong></p>`:''}<p class="text-slate-400 mt-1">${escapeHtml(log.time)}</p></div>`).join('');
+                return `<details class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden"><summary class="list-none cursor-pointer p-4 flex flex-wrap items-center justify-between gap-2"><div class="flex items-center gap-3"><span class="text-2xl">${escapeHtml(entry.avatar)}</span><div><strong class="text-indigo-950">${escapeHtml(entry.name)}</strong><div class="text-[11px] text-slate-500">${entry.logs.length} отговора</div></div></div><div class="flex items-center gap-2 text-xs"><span class="text-emerald-700">✓ ${good}</span><span class="text-rose-700">✕ ${bad}</span></div></summary><div class="px-3 pb-3 space-y-2"><div class="flex justify-end"><button onclick="resetStudentByName(decodeURIComponent('${encodeURIComponent(entry.name)}'))" class="px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-lg text-xs">Нулирай резултатите на ученика</button></div>${detail || '<p class="text-xs text-slate-500">Няма решени задачи.</p>'}</div></details>`;
+            }).join('');
+        }
+
+        function renderAdminRanking() {
+            const container = document.getElementById('adminRankingList');
+            const totals = new Map();
+            remoteStudentsCache.forEach(s => { if (!totals.has(s.display_name)) totals.set(s.display_name,{name:s.display_name,avatar:s.avatar||'🦊',score:0}); });
+            remoteLogsCache.forEach(l => { const row=totals.get(l.student); if(row) row.score += Number(l.pointsEarned||0); });
+            const list = [...totals.values()].sort((a,b)=>b.score-a.score);
+            if (!list.length) { container.innerHTML='<p class="text-center text-slate-400 py-4">Класирането е празно.</p>'; return; }
+            container.innerHTML = list.map((item,index)=>`<div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100"><div class="flex items-center gap-3"><strong class="text-indigo-900">#${index+1}</strong><span class="text-xl">${escapeHtml(item.avatar)}</span><strong>${escapeHtml(item.name)}</strong></div><span class="font-bold text-amber-700">${item.score} т.</span></div>`).join('');
+        }
+
+        async function resetStudentByName(encodedName) {
+            const name = encodedName;
+            if (!selectedTeacherClassId || !confirm(`Да нулирам ли всички резултати на ${name} в този клас?`)) return;
+            const ids = remoteStudentsCache.filter(s=>s.display_name===name).map(s=>s.id);
+            if (!ids.length) return;
+            const { error } = await supabaseClient.from('attempts').delete().in('student_id', ids);
+            if (error) { alert('Грешка при нулирането: '+error.message); return; }
+            await loadSelectedClassData();
+            alert('Резултатите на ученика са нулирани.');
+        }
+
+        async function resetWholeClass() {
+            if (!selectedTeacherClassId || !confirm('Сигурна ли си, че искаш да нулираш всички резултати на този клас? Списъкът с ученици ще остане.')) return;
+            const { error } = await supabaseClient.from('attempts').delete().eq('class_id', selectedTeacherClassId);
+            if (error) { alert('Грешка при нулирането: '+error.message); return; }
+            await loadSelectedClassData();
+            alert('Резултатите на целия клас са нулирани.');
+        }
+
+        async function exportTeacherReport() {
+            const logs = getTeacherLogs();
+            if (!logs.length) { alert('Няма данни за изтегляне.'); return; }
+            const rows = [['Ученик','Тема','Ниво','Задача','Отговор на ученика','Правилен отговор','Резултат','Дата']];
+            logs.forEach(l=>rows.push([l.student,l.topicName,l.level,String(l.question||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(),l.selected,l.correct,l.isCorrect?'Верен':'Грешен',l.date]));
+            const csv='\ufeff'+rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+            const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); const a=document.createElement('a'); a.href=url; a.download='otchet_magichesko_kralstvo.csv'; a.click(); URL.revokeObjectURL(url);
+        }
+
+        async function openLiveLeaderboard() {
+            playTone('click');
+            if (!supabaseClient || !currentStudentId) { alert('Първо влез в класа.'); return; }
+            document.getElementById('viewMap').classList.add('hidden');
+            document.getElementById('viewLeaderboard').classList.remove('hidden');
+            const container=document.getElementById('leaderboardList'); container.innerHTML='<p class="text-center text-slate-400 py-4">Зареждане...</p>';
+            const {data,error}=await supabaseClient.rpc('get_class_leaderboard');
+            if(error){container.innerHTML='<p class="text-rose-600">Не успяхме да заредим класирането.</p>';return;}
+            const list=data||[];
+            container.innerHTML=list.length?list.map((item,i)=>`<div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100"><div class="flex items-center gap-3"><strong class="text-indigo-900">#${i+1}</strong><span class="text-2xl">${escapeHtml(item.avatar||'🦊')}</span><strong>${escapeHtml(item.display_name)}</strong></div><span class="bg-amber-400 text-amber-950 font-bold px-3 py-1 rounded-full text-xs">${item.score} т.</span></div>`).join(''):'<p class="text-center text-slate-400 py-4">Все още няма класирани участници.</p>';
+        }
+
+        // Replace local-only refresh button behavior with a real online reload.
+        async function refreshTeacherData() { await loadSelectedClassData(); }
+
+
+        async function goToHome() {
+            playTone('click');
+            if (supabaseClient) { const {data}=await supabaseClient.auth.getSession(); if (data?.session?.user && !data.session.user.is_anonymous) await supabaseClient.auth.signOut(); }
+            document.getElementById('viewLogin').classList.remove('hidden');
+            ['viewMap','viewGame','viewComplete','viewLeaderboard','viewAdminDashboard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+            document.getElementById('userInfoHeader').classList.add('hidden');
+            currentStudentId=null; currentClassId=null; studentName=''; totalScore=0;
+        }
+
+
+            </script>
+</body>
+</html>
